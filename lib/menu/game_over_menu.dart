@@ -1,36 +1,36 @@
 import 'package:flutter/material.dart';
-import 'package:fire_on_you/game/fire_on_you_game.dart';
+import '../game/fire_on_you_game.dart';
 
-class LevelCompleteMenu extends StatelessWidget {
+class GameOverMenu extends StatelessWidget {
   final FireOnYouGame game;
   final int score;
 
-  const LevelCompleteMenu({super.key, required this.game, required this.score});
+  const GameOverMenu({super.key, required this.game, required this.score});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Level Complete'),
+        title: const Text('Game Over'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'Level Complete!',
+              'Game Over!',
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             ),
             Text(
-              'Score: $score',
+              'Your Score: $score',
               style: const TextStyle(fontSize: 24),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-                game.loadLevel(game.currentLevel);
+                game.resetGame(); // Oyunu sıfırla ve yeniden başlat
               },
-              child: const Text('Next Level'),
+              child: const Text("Restart"),
             ),
           ],
         ),
