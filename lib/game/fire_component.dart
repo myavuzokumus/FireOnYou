@@ -4,21 +4,38 @@ import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/extensions.dart';
 import 'fire_on_you_game.dart';
+import 'dart:math';
 
 class FireComponent extends PositionComponent with HasGameRef<FireOnYouGame> {
   late SpriteComponent fireSprite;
   late double timeLeft;
-  final double timeLimit;
+  late final double timeLimit;
   FireInfo fireInfo;
 
   FireComponent({
     required Vector2 position,
-    required this.timeLimit,
     required this.fireInfo,
   }) {
     this.position = position;
     size = Vector2(64, 64);
+    timeLimit = _getTimeLimitForFireType(fireInfo.type);
     timeLeft = timeLimit;
+  }
+
+  // Yangın türüne göre süre belirleme
+  double _getTimeLimitForFireType(FireType type) {
+    switch (type) {
+      case FireType.forest:
+        return Random().nextInt(5) + 5; // Orman yangınları için daha uzun süre
+      case FireType.factory:
+        return Random().nextInt(3) + 5;
+      case FireType.house:
+        return Random().nextInt(3) + 3; // Ev yangınları için daha kısa süre
+      case FireType.workplace:
+        return Random().nextInt(4) + 3;
+      default:
+        return 5.0;
+    }
   }
 
   @override

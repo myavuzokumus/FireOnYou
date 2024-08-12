@@ -1,13 +1,15 @@
-import 'dart:math';
 import 'dart:async' as timer;
+import 'dart:math';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:fire_on_you/game/model/fire_type.dart';
+import 'package:fire_on_you/game/sounds.dart';
 import 'package:fire_on_you/menu/game_over_menu.dart';
-import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+
 import 'fire_component.dart';
 
 class FireOnYouGame extends FlameGame with TapDetector {
@@ -39,7 +41,7 @@ class FireOnYouGame extends FlameGame with TapDetector {
         random.nextDouble() * (size.y - 64),
       );
       final fireInfo = getRandomFireInfo(); // Yangın türünü ve şiddetini al
-      final fire = FireComponent(position: position, timeLimit: random.nextInt(5) + 3, fireInfo: fireInfo);
+      final fire = FireComponent(position: position, fireInfo: fireInfo);
       add(fire);
       fires.add(fire);
     });
@@ -86,7 +88,9 @@ class FireOnYouGame extends FlameGame with TapDetector {
         fire.extinguish();
         if (fire.fireInfo.intensity <= 0) {
           score += 100;
-          audioPlayer.play(AssetSource('sounds/fire_extinguish.wav'));
+          audioPlayer.play(soundMap[Sound.fireExtinguish]!);
+          fire.removeFromParent();
+          fires.remove(fire);
         }
         break;
       }
