@@ -2,6 +2,9 @@ import 'dart:async' as timer;
 import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:fire_on_you/game/burn_mark_component.dart';
+import 'package:fire_on_you/game/fire_fighting_tool_component.dart';
+import 'package:fire_on_you/game/model/fire_fighting_tool.dart';
 import 'package:fire_on_you/game/model/fire_type.dart';
 import 'package:fire_on_you/game/sounds.dart';
 import 'package:fire_on_you/menu/game_over_menu.dart';
@@ -12,13 +15,18 @@ import 'package:flutter/material.dart';
 
 import 'fire_component.dart';
 
-class FireOnYouGame extends FlameGame with TapDetector {
+class FireOnYouGame extends FlameGame with TapDetector, PanDetector {
   late List<FireComponent> fires;
+  late List<FireFightingToolComponent> tools; // Eklenecek araçlar
+  FireFightingToolComponent? selectedTool; // Seçili aracı takip etmek için
   int score = 0;
   int lives = 3;
   late AudioPlayer audioPlayer;
   Random random = Random();
   final BuildContext context;
+
+  // Söndürülemeyen ateşlerin konumlarını saklayan liste
+  final List<BurnMarkComponent> burnMarks = [];
 
   FireOnYouGame(this.context);
 
@@ -28,23 +36,124 @@ class FireOnYouGame extends FlameGame with TapDetector {
     audioPlayer = AudioPlayer();
     fires = [];
     spawnFires();
+    addTools();
   }
 
   void spawnFires() {
-    timer.Timer.periodic(Duration(seconds: random.nextInt(3) + 1), (timer) {
+    timer.Timer.periodic(Duration(seconds: _getSpawnInterval()), (timer) {
       if (lives <= 0) {
         timer.cancel();
         return;
       }
-      final position = Vector2(
-        random.nextDouble() * (size.x - 64),
-        random.nextDouble() * (size.y - 64),
-      );
+
+      Vector2 position;
+      do {
+        position = Vector2(
+          random.nextDouble() * (size.x - 64),
+          random.nextDouble() * (size.y - 64),
+        );
+      } while (_isTooCloseToFailedFires(position)); // Yeni ateşin uzaklığını kontrol et
+
       final fireInfo = getRandomFireInfo(); // Yangın türünü ve şiddetini al
-      final fire = FireComponent(position: position, fireInfo: fireInfo);
+      final fire = FireComponent(firePosition: position, fireInfo: fireInfo);
       add(fire);
       fires.add(fire);
     });
+  }
+
+  // Skora bağlı olarak ateşlerin çıkma sıklığını belirleme
+  int _getSpawnInterval() {
+    final int scoreThreshold = 500; // Skor eşiği
+    final int minInterval = 1; // Minimum zaman aralığı (saniye)
+    final int maxInterval = 4; // Maksimum zaman aralığı (saniye)
+
+    // Skora bağlı olarak zaman aralığını belirle
+    double interval = maxInterval - (score / scoreThreshold) * (maxInterval - minInterval);
+    return interval.clamp(minInterval.toDouble(), maxInterval.toDouble()).toInt();
+  }
+
+  bool _isTooCloseToFailedFires(Vector2 newPosition) {
+    const double safeDistance = 100.0; // Güvenli mesafe (örneğin 100 piksel)
+    for (var failedPosition in burnMarks) {
+      if (failedPosition.markerPosition.distanceTo(newPosition) < safeDistance) {
+        return true; // Eğer yeni ateş konumu herhangi bir başarısız konuma çok yakınsa, true döndür
+      }
+    }
+    return false; // Uzaksa, false döndür
+  }
+
+  void addTools() {
+    // Araçları tanımlama ve ekleme
+    tools = [
+      FireFightingToolComponent(
+        tool: FireFightingTool(
+          name: 'Water Hose',
+          effectiveAgainst: FireType.house,
+          cooldown: const Duration(seconds: 5),
+        ),
+        defaultPosition: Vector2(50, size.y - 100),
+      ),
+      FireFightingToolComponent(
+        tool: FireFightingTool(
+          name: 'Fire Extinguisher',
+          effectiveAgainst: FireType.workplace,
+          cooldown: const Duration(seconds: 5),
+        ),
+        defaultPosition: Vector2(150, size.y - 100),
+      ),
+      FireFightingToolComponent(
+        tool: FireFightingTool(
+          name: 'Fire Truck',
+          effectiveAgainst: FireType.factory,
+          cooldown: const Duration(seconds: 7),
+        ),
+        defaultPosition: Vector2(250, size.y - 100),
+      ),
+      FireFightingToolComponent(
+        tool: FireFightingTool(
+          name: 'Fire Plane',
+          effectiveAgainst: FireType.forest,
+          cooldown: const Duration(seconds: 10),
+        ),
+        defaultPosition: Vector2(350, size.y - 100),
+      ),
+    ];
+
+    for (var tool in tools) {
+      add(tool);
+    }
+  }
+
+  @override
+  void onPanUpdate(DragUpdateInfo info) {
+    if (selectedTool != null && !selectedTool!.tool.isInCooldown) {
+      selectedTool!.position += info.delta.global;
+    }
+  }
+
+  @override
+  void onPanEnd(DragEndInfo info) {
+    if (selectedTool != null) {
+      bool toolUsed = false;
+      for (var fire in fires) {
+        if (fire.toRect().overlaps(selectedTool!.toRect())) {
+          if (fire.fireInfo.type == selectedTool!.tool.effectiveAgainst) {
+            // Doğru araç doğru yangın için kullanıldı
+            fire.extinguishImmediately();
+            toolUsed = true;
+          } else {
+            // Yanlış araç kullanıldı, süreyi azalt
+            fire.reduceTimeByHalf();
+          }
+          break;
+        }
+      }
+      if (toolUsed) {
+        selectedTool!.tool.startCooldown(); // Aracı soğuma süresine sok
+      }
+      selectedTool!.resetPosition(); // Aracı eski konumuna getir
+      selectedTool = null; // Seçili aracı temizle
+    }
   }
 
   @override
@@ -83,18 +192,32 @@ class FireOnYouGame extends FlameGame with TapDetector {
 
   @override
   void onTapDown(TapDownInfo info) {
+
+    for (var tool in tools) {
+      if (tool.containsPoint(info.eventPosition.global)) {
+        tool.onSelected(); // Araç seçildiğinde
+        break;
+      }
+    }
+
     for (var fire in fires) {
       if (fire.containsPoint(info.eventPosition.global)) {
         fire.extinguish();
         if (fire.fireInfo.intensity <= 0) {
-          score += 100;
-          audioPlayer.play(soundMap[Sound.fireExtinguish]!);
-          fire.removeFromParent();
-          fires.remove(fire);
+          fire.extinguishImmediately();
         }
         break;
       }
     }
+
+    for (var tool in tools) {
+      if (tool.containsPoint(info.eventPosition.global)) {
+        selectedTool = tool;
+        tool.onSelected();
+        break;
+      }
+    }
+
   }
 
   void decreaseLife() {
@@ -106,7 +229,10 @@ class FireOnYouGame extends FlameGame with TapDetector {
     score = 0;
     lives = 3;
     fires.forEach((fire) => fire.removeFromParent());
+    burnMarks.forEach((mark) => mark.removeFromParent()); // BurnMark'ları temizle
+    burnMarks.clear();
     fires.clear();
+    tools.forEach((tool) => tool.reset());
     resumeEngine();
     spawnFires();
   }

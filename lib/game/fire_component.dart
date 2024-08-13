@@ -1,4 +1,6 @@
+import 'package:fire_on_you/game/burn_mark_component.dart';
 import 'package:fire_on_you/game/model/fire_type.dart';
+import 'package:fire_on_you/game/sounds.dart';
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
@@ -11,12 +13,13 @@ class FireComponent extends PositionComponent with HasGameRef<FireOnYouGame> {
   late double timeLeft;
   late final double timeLimit;
   FireInfo fireInfo;
+  final Vector2 firePosition;
 
   FireComponent({
-    required Vector2 position,
+    required this.firePosition,
     required this.fireInfo,
   }) {
-    this.position = position;
+    position = firePosition;
     size = Vector2(64, 64);
     timeLimit = _getTimeLimitForFireType(fireInfo.type);
     timeLeft = timeLimit;
@@ -71,8 +74,15 @@ class FireComponent extends PositionComponent with HasGameRef<FireOnYouGame> {
     super.update(dt);
     timeLeft -= dt;
     if (timeLeft <= 0) {
+
+      BurnMarkComponent mark = BurnMarkComponent(firePosition);
+      gameRef.add(mark); // Yan
+      gameRef.burnMarks.add(mark);
+
       removeFromParent();
       gameRef.decreaseLife();
+      gameRef.fires.remove(this);
+
     }
   }
 
@@ -108,6 +118,20 @@ class FireComponent extends PositionComponent with HasGameRef<FireOnYouGame> {
       'x${fireInfo.intensity}',
       Vector2(size.x - 20, 30),
     );
+  }
+
+  void extinguishImmediately() {
+    gameRef.score += 100;
+    gameRef.audioPlayer.play(soundMap[Sound.fireExtinguish]!);
+    // Yangını anında söndür
+    removeFromParent();
+    // Eğer oyun içerisinde yangın listesi varsa, buradan da kaldırın
+    gameRef.fires.remove(this);
+  }
+
+  void reduceTimeByHalf() {
+    // Yangının kalan süresini yarıya indir
+    timeLeft = timeLeft / 2;
   }
 
   void extinguish() {
