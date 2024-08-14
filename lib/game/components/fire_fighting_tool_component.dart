@@ -1,7 +1,7 @@
 // lib/game/fire_fighting_tool_component.dart
 
 import 'package:fire_on_you/game/fire_on_you_game.dart';
-import 'package:fire_on_you/game/model/fire_fighting_tool.dart';
+import 'package:fire_on_you/game/models/fire_fighting_tool.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 

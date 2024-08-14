@@ -2,18 +2,17 @@ import 'dart:async' as timer;
 import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:fire_on_you/game/burn_mark_component.dart';
-import 'package:fire_on_you/game/fire_fighting_tool_component.dart';
-import 'package:fire_on_you/game/model/fire_fighting_tool.dart';
-import 'package:fire_on_you/game/model/fire_type.dart';
-import 'package:fire_on_you/game/sounds.dart';
+import 'package:fire_on_you/game/components/burn_mark_component.dart';
+import 'package:fire_on_you/game/components/fire_component.dart';
+import 'package:fire_on_you/game/components/fire_fighting_tool_component.dart';
+import 'package:fire_on_you/game/models/fire_fighting_tool.dart';
+import 'package:fire_on_you/game/models/fire_type.dart';
 import 'package:fire_on_you/menu/game_over_menu.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flutter/material.dart';
 
-import 'fire_component.dart';
 
 class FireOnYouGame extends FlameGame with TapDetector, PanDetector {
   late List<FireComponent> fires;
@@ -24,11 +23,12 @@ class FireOnYouGame extends FlameGame with TapDetector, PanDetector {
   late AudioPlayer audioPlayer;
   Random random = Random();
   final BuildContext context;
+  final int playerId;
 
   // Söndürülemeyen ateşlerin konumlarını saklayan liste
   final List<BurnMarkComponent> burnMarks = [];
 
-  FireOnYouGame(this.context);
+  FireOnYouGame(this.context, {required this.playerId});
 
   @override
   Future<void> onLoad() async {
@@ -63,9 +63,9 @@ class FireOnYouGame extends FlameGame with TapDetector, PanDetector {
 
   // Skora bağlı olarak ateşlerin çıkma sıklığını belirleme
   int _getSpawnInterval() {
-    final int scoreThreshold = 500; // Skor eşiği
-    final int minInterval = 1; // Minimum zaman aralığı (saniye)
-    final int maxInterval = 4; // Maksimum zaman aralığı (saniye)
+    const int scoreThreshold = 500; // Skor eşiği
+    const int minInterval = 1; // Minimum zaman aralığı (saniye)
+    const int maxInterval = 4; // Maksimum zaman aralığı (saniye)
 
     // Skora bağlı olarak zaman aralığını belirle
     double interval = maxInterval - (score / scoreThreshold) * (maxInterval - minInterval);
@@ -185,7 +185,11 @@ class FireOnYouGame extends FlameGame with TapDetector, PanDetector {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => GameOverMenu(game: this, score: score),
+        builder: (context) => GameOverMenu(
+          game: this,
+          score: score,
+          playerId: playerId// Pass the resetGame method as the callback
+        ),
       ),
     );
   }
