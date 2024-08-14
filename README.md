@@ -1,16 +1,44 @@
-# fire_on_you
+# FireOnYou
 
-Be fast to extinguish the fire of threat to all of us!
+| Image                       | Description                                                                                                                                       |
+|-----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| ![](/assets/in_game_ss.png) | This is my first Flame game that I developed with Backend. Java Sprint Boot is used in the background of this. |
 
-## Getting Started
+![](/assets/main_menu_ss.png)
 
-This project is a starting point for a Flutter application.
+## Installation
 
-A few resources to get you started if this is your first Flutter project:
+### Flutter side
+1. Create a new Flutter project:
+```
+flutter create fire_on_you
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+2. Clone the repository:
+```
+git clone https://github.com/myavuzokumus/FireOnYou.git
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+3. Test your changes by running the app on an emulator or a physical device:
+```
+flutter run
+```
+
+> [!NOTE]
+> All backend things are on the Java Spring Boot side. So if you want to use the app with functionality, you also need to run the Java Spring Boot backend.
+> https://github.com/myavuzokumus/FireOnYou-Backend
+
+## Packages
+
+- [audioplayers](https://pub.dev/packages/audioplayers) - Play audio files.
+- [flame](https://pub.dev/packages/flame) - Game engine.
+- [http](https://pub.dev/packages/http) - Web integration.
+
+## Assets Licence
+
+- [Product Sans](https://fonts.google.com/license/productsans) - Product Sans
+- [Flaticon](https://www.flaticon.com/free-icons) - weather-icons
+
+## License
+
+This project is licensed under the [MIT License](/LICENSE).
