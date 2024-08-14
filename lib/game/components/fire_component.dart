@@ -1,12 +1,14 @@
-import 'package:fire_on_you/game/burn_mark_component.dart';
-import 'package:fire_on_you/game/model/fire_type.dart';
+import 'dart:math';
+
+import 'package:fire_on_you/game/components/burn_mark_component.dart';
+import 'package:fire_on_you/game/fire_on_you_game.dart';
+import 'package:fire_on_you/game/models/fire_type.dart';
 import 'package:fire_on_you/game/sounds.dart';
 import 'package:flame/components.dart';
+import 'package:flame/extensions.dart';
 import 'package:flame/palette.dart';
 import 'package:flutter/material.dart';
-import 'package:flame/extensions.dart';
-import 'fire_on_you_game.dart';
-import 'dart:math';
+
 
 class FireComponent extends PositionComponent with HasGameRef<FireOnYouGame> {
   late SpriteComponent fireSprite;

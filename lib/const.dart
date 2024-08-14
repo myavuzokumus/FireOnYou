@@ -1,0 +1,1 @@
+const String SERVER_URL = "http://localhost:8080";

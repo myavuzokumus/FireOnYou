@@ -1,4 +1,4 @@
-import 'package:fire_on_you/game/model/fire_type.dart';
+import 'package:fire_on_you/game/models/fire_type.dart';
 
 class FireFightingTool {
   final String name;
